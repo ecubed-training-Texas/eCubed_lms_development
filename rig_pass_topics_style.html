@@ -1,0 +1,38 @@
+<script>
+    var style = document.createElement('style');
+    style.innerHTML = `
+        .activity.modtype_page .activityicon {
+            display: none !important;
+        }
+        .activity.modtype_page .instancename { 
+            border-left-style: solid !important; 
+            border-left-color: coral !important; 
+            border-left-width: 6px !important; 
+            padding: 5px !important; 
+            color: blue !important; 
+            display: block !important;
+            text-align: left !important; 
+            font-size: 15px !important; 
+            background-color: #e0e0e0 !important;
+            width: 100% !important;
+            margin-left: 0 !important;
+        } 
+        .activity.modtype_lesson .instancename { 
+            border-left-style: solid !important; 
+            border-left-color: #a9bdff !important; 
+            border-left-width: 6px !important; 
+            padding: 5px !important; 
+            color: blue !important; 
+            display: inline-block !important; 
+            text-align: left !important; 
+            font-size: 15px !important; 
+        }
+        /* Highlight the button on hover */
+        .activity.modtype_page button:hover {
+            border-radius: 24px !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important;
+            transition: border-radius 0.2s;
+        }
+    `;
+    document.head.appendChild(style);
+</script>

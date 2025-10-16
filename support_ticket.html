@@ -1,0 +1,131 @@
+<details style="margin: 20px auto; max-width: 600px; border-left: 4px solid #f28c38; background-color: #e9ecef; border-radius: 4px;">
+    <summary style="padding: 10px 15px; font-family: Arial, sans-serif; font-weight: bold; color: #333; cursor: pointer; background-color: #d3d8de; border-radius: 4px 0 0 4px;">
+        <span style="color: #007bff; text-decoration: underline;">Technical Support Ticket</span>
+    </summary>
+    <div style="padding: 20px; background-color: #fff; border-radius: 0 0 4px 4px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+        <form id="ticketForm" action="" enctype="multipart/form-data" style="background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+            <div style="margin-bottom: 15px;">
+                <label for="errorType" style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">SELECCIONAR TIPO DE ERROR *</label>
+                <select id="errorType" name="select-1751199777105" required style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px;">
+                    <option value="BUG" selected>BUG</option>
+                    <option value="ERROR">ERROR</option>
+                    <option value="SUGERENCIA">SUGERENCIA</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="description" style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">DESCRIPCIÓN DEL PROBLEMA *</label>
+                <textarea id="description" name="textarea-1751199789711" required style="width: 100%; height: 100px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px;"></textarea>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">ASSIGN PRIORITY</label>
+                <div style="display: flex; flex-direction: column;">
+                    <label style="margin-bottom: 5px;">
+                        <input type="radio" name="radio-group-1751200350545" value="URGENT" checked style="margin-right: 5px;"> URGENT
+                    </label>
+                    <label style="margin-bottom: 5px;">
+                        <input type="radio" name="radio-group-1751200350545" value="HIGH" style="margin-right: 5px;"> HIGH
+                    </label>
+                    <label style="margin-bottom: 5px;">
+                        <input type="radio" name="radio-group-1751200350545" value="MEDIUM" style="margin-right: 5px;"> MEDIUM
+                    </label>
+                    <label style="margin-bottom: 5px;">
+                        <input type="radio" name="radio-group-1751200350545" value="LOW" style="margin-right: 5px;"> LOW
+                    </label>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="files" style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">UPLOAD IMAGE OR VIDEO OF ERROR</label>
+                <input type="file" id="files" name="images[]" multiple accept="image/*,video/*" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px;">
+            </div>
+
+            <button type="submit" style="width: 100%; padding: 10px; background-color: #007bff; color: #fff; border: none; border-radius: 4px; font-size: 16px; cursor: pointer;">Submit Ticket</button>
+        </form>
+    </div>
+</details>
+
+<script>
+//<![CDATA[
+    document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('ticketForm');
+    form.addEventListener('submit', async function(event) {
+        event.preventDefault();
+
+        // Build the data object as per your Postman example
+        const dataPayload = {
+            ubicacion: "Nave 2",
+            puesto: "000001",
+            nombre: "",
+            fecha: new Date().toLocaleString("en-GB"), // or your preferred format
+            employeeNo: "000001",
+            data: [
+                {
+                    name: "select-1751199777105",
+                    value: [{ label: document.getElementById('errorType').value, value: document.getElementById('errorType').value }],
+                    textField: null,
+                    label: "Tipo de incidente",
+                    type: "select"
+                },
+                {
+                    name: "file-1682602549204",
+                    value: null,
+                    textField: null,
+                    label: "Adjuntar una evidencia",
+                    type: "file"
+                },
+                {
+                    name: "radio-group-1751200350545",
+                    value: [{ label: document.querySelector('input[name="radio-group-1751200350545"]:checked').value, value: document.querySelector('input[name="radio-group-1751200350545"]:checked').value }],
+                    textField: null,
+                    label: "ASSIGN PRIORITY",
+                    type: "radio-group"
+                },
+                {
+                    name: "textarea-1751199789711",
+                    value: null,
+                    textField: document.getElementById('description').value,
+                    label: "DESCRIPCIÓN DEL PROBLEMA",
+                    type: "textarea"
+                }
+            ]
+        };
+
+        // Build the final payload
+        const payload = {
+            category_id: '75274855-f09b-402e-825e-f90936c4d4d2',
+            location_id: 'a85dec69-b015-445e-a0e0-270dd84f3eb6',
+            workflow_id: 'd4bd2cc1-014e-46b0-8335-2540dc3e00b1',
+            data: JSON.stringify(dataPayload), // <-- Fix here!
+            email_to_user: '17'
+        };
+
+        const apiBase = 'https://' + 'zona.3-ec.com/api/workflows/';
+        const apiUrl = apiBase + 'd4bd2cc1-014e-46b0-8335-2540dc3e00b1';
+
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer 749|bYGRDt5RIF5YKRb0leNzicGRCBPw8Bv3sKbX8Zdo',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                alert('Ticket submitted successfully! Ticket ID: ' + (result.ticketId || 'N/A'));
+            } else {
+                const error = await response.text();
+                alert('Error submitting ticket: ' + error);
+            }
+        } catch (error) {
+            alert('Network error: ' + error.message);
+        }
+    });
+});
+//]]>
+</script>
