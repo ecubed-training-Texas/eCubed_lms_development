@@ -1,6 +1,7 @@
 function initializeSafetyModule(moduleId) {
   console.log(`Initializing safety module: ${moduleId}`);
-  document.addEventListener("DOMContentLoaded", function () {
+
+  function init() {
     const module = document.getElementById(moduleId);
     if (!module) {
       console.warn(`Module with ID ${moduleId} not found`);
@@ -145,7 +146,7 @@ function initializeSafetyModule(moduleId) {
       }
       defaultVoiceIndex = defaultVoiceIndex >= 0 ? defaultVoiceIndex : 0;
       voiceSelect.value = defaultVoiceIndex;
-      console.log(`Default voice selected: ${voices[defaultVoiceIndex].name} (${voices[defaultVoiceIndex].lang})`);
+      console.log(`Default voice set to: ${voices[defaultVoiceIndex]?.name || 'unknown'} (${voices[defaultVoiceIndex]?.lang || 'unknown'})`);
       voicesLoaded = true;
     }
 
@@ -581,5 +582,12 @@ function initializeSafetyModule(moduleId) {
         populateVoices();
       }
     };
-  });
+  }
+
+  if (document.readyState === "complete" || document.readyState === "interactive") {
+    // DOM already ready — run asynchronously to mimic DOMContentLoaded timing
+    setTimeout(init, 0);
+  } else {
+    document.addEventListener("DOMContentLoaded", init);
+  }
 }
