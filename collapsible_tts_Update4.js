@@ -118,43 +118,54 @@ function initializeSafetyModule(moduleId) {
         voiceSelect.appendChild(option);
       });
 
-      const pageLang = getPageLang();
-      let defaultVoiceIndex = voices.findIndex(voice => voice.lang === "es-MX" && voice.name.includes("Microsoft"));
+      // pick default voice based on detected page language
+      const pageLang = getPageLang().split('-')[0].toLowerCase();
+      let defaultVoiceIndex = voices.findIndex(v =>
+        v.lang && v.lang.split('-')[0].toLowerCase() === pageLang &&
+        (v.name.includes("Microsoft") || v.name.includes("Google") || v.name.includes("Premium"))
+      );
+
       if (defaultVoiceIndex === -1) {
-        defaultVoiceIndex = voices.findIndex(voice => voice.lang === "es-ES" && voice.name.includes("Microsoft"));
+        defaultVoiceIndex = voices.findIndex(v =>
+          v.lang && v.lang.split('-')[0].toLowerCase() === pageLang
+        );
       }
-      if (defaultVoiceIndex === -1) {
-        defaultVoiceIndex = voices.findIndex(voice => voice.lang.startsWith("es") && voice.name.includes("Microsoft"));
+
+      // If nothing matches the page language, prefer English voices as sensible fallback
+      if (defaultVoiceIndex === -1 && pageLang !== "en") {
+        defaultVoiceIndex = voices.findIndex(v => v.lang && v.lang.split('-')[0].toLowerCase() === "en");
       }
-      if (defaultVoiceIndex === -1) {
-        defaultVoiceIndex = voices.findIndex(voice => voice.lang === "es-MX" && voice.name.includes("Google"));
-      }
-      if (defaultVoiceIndex === -1) {
-        defaultVoiceIndex = voices.findIndex(voice => voice.lang === "es-ES" && voice.name.includes("Google"));
-      }
-      if (defaultVoiceIndex === -1) {
-        defaultVoiceIndex = voices.findIndex(voice => voice.lang.startsWith("es") && voice.name.includes("Google"));
-      }
-      if (defaultVoiceIndex === -1) {
-        defaultVoiceIndex = voices.findIndex(voice => voice.lang === "es-MX");
-      }
-      if (defaultVoiceIndex === -1) {
-        defaultVoiceIndex = voices.findIndex(voice => voice.lang === "es-ES");
-      }
-      if (defaultVoiceIndex === -1) {
-        defaultVoiceIndex = voices.findIndex(voice => voice.lang.startsWith("es"));
-      }
-      defaultVoiceIndex = defaultVoiceIndex >= 0 ? defaultVoiceIndex : 0;
+
+      if (defaultVoiceIndex === -1) defaultVoiceIndex = 0;
+      if (defaultVoiceIndex < 0 || defaultVoiceIndex >= voices.length) defaultVoiceIndex = 0;
+
       voiceSelect.value = defaultVoiceIndex;
-      console.log(`Default voice set to: ${voices[defaultVoiceIndex]?.name || 'unknown'} (${voices[defaultVoiceIndex]?.lang || 'unknown'})`);
+      console.log(`Default voice set to: ${voices[defaultVoiceIndex]?.name || 'unknown'} (${voices[defaultVoiceIndex]?.lang || 'unknown'}) for language: ${pageLang}`);
       voicesLoaded = true;
     }
 
     function getPageLang() {
+      // 1) Preferred: <html lang="...">
+      const htmlLang = document.documentElement.lang;
+      if (htmlLang && htmlLang.trim() !== "") {
+        return htmlLang.split('-')[0].toLowerCase();
+      }
+
+      // 2) URL param fallback: ?lang=xx
       const urlParams = new URLSearchParams(window.location.search);
       const urlLang = urlParams.get("lang");
-      const htmlLang = contentDiv.querySelector("[lang]")?.getAttribute("lang");
-      return urlLang ? urlLang : (htmlLang || "en");
+      if (urlLang && urlLang.trim() !== "") {
+        return urlLang.split('-')[0].toLowerCase();
+      }
+
+      // 3) content-specific lang attribute fallback
+      const innerLang = contentDiv.querySelector("[lang]")?.getAttribute("lang");
+      if (innerLang && innerLang.trim() !== "") {
+        return innerLang.split('-')[0].toLowerCase();
+      }
+
+      // final fallback
+      return "en";
     }
 
     function wrapWordsInSpans() {
@@ -591,3 +602,4 @@ function initializeSafetyModule(moduleId) {
     document.addEventListener("DOMContentLoaded", init);
   }
 }
+//Version 3.0
