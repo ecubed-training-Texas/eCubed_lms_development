@@ -145,24 +145,66 @@ function initializeSafetyModule(moduleId) {
     }
 
     function getPageLang() {
-      // 1) Preferred: <html lang="...">
-      const htmlLang = document.documentElement.lang;
-      if (htmlLang && htmlLang.trim() !== "") {
-        return htmlLang.split('-')[0].toLowerCase();
+      // helper: normalize to two-letter prefix
+      const norm = s => (s || "").toString().split('-')[0].toLowerCase().trim();
+
+      // 1) <html lang>
+      const htmlLang = document.documentElement && document.documentElement.lang;
+      if (htmlLang && htmlLang.trim()) return norm(htmlLang);
+
+      // 2) <body lang>
+      const bodyLang = document.body && document.body.getAttribute && document.body.getAttribute('lang');
+      if (bodyLang && bodyLang.trim()) return norm(bodyLang);
+
+      // 3) meta tags (Content-Language / language)
+      const meta = document.querySelector('meta[http-equiv="Content-Language"], meta[name="content-language"], meta[name="language"]');
+      if (meta) {
+        const mVal = meta.getAttribute('content') || meta.getAttribute('lang') || meta.getAttribute('value');
+        if (mVal && mVal.trim()) return norm(mVal);
       }
 
-      // 2) URL param fallback: ?lang=xx
-      const urlParams = new URLSearchParams(window.location.search);
-      const urlLang = urlParams.get("lang");
-      if (urlLang && urlLang.trim() !== "") {
-        return urlLang.split('-')[0].toLowerCase();
+      // 4) explicit query parameter ?lang=xx
+      try {
+        const qp = new URL(window.location.href).searchParams.get('lang');
+        if (qp && qp.trim()) return norm(qp);
+      } catch (e) { /* ignore URL parse */ }
+
+      // 5) hash param e.g. #lang=en or #/en/ ...
+      const hash = window.location.hash || "";
+      const hMatch = hash.match(/lang=([a-zA-Z-]+)/) || hash.match(/#\/?([a-z]{2}(?:-[a-zA-Z]{2})?)\/?/i);
+      if (hMatch && hMatch[1]) return norm(hMatch[1]);
+
+      // 6) path segment like /en/ or /es/
+      const pathMatch = window.location.pathname.match(/\/([a-z]{2})(?:[\/\-]|$)/i);
+      if (pathMatch && pathMatch[1]) return norm(pathMatch[1]);
+
+      // 7) visible .multilang or content-specific lang attributes inside TTS area
+      const visibleSpan = (typeof contentDiv !== "undefined" ? contentDiv : document).querySelector?.('.multilang[lang]:not([style*="display:none"])') || document.querySelector('.multilang[lang]:not([style*="display:none"])');
+      if (visibleSpan) {
+        const v = visibleSpan.getAttribute('lang');
+        if (v && v.trim()) return norm(v);
+      }
+      const innerLang = (typeof contentDiv !== "undefined" ? contentDiv : document).querySelector?.('[lang]')?.getAttribute('lang');
+      if (innerLang && innerLang.trim()) return norm(innerLang);
+
+      // 8) form/select element that commonly holds language (Moodle themes sometimes)
+      const langInput = document.querySelector('select[name="lang"], input[name="lang"], [data-lang]');
+      if (langInput) {
+        const val = langInput.value || langInput.getAttribute('data-lang') || langInput.getAttribute('lang');
+        if (val && val.trim()) return norm(val);
       }
 
-      // 3) content-specific lang attribute fallback
-      const innerLang = contentDiv.querySelector("[lang]")?.getAttribute("lang");
-      if (innerLang && innerLang.trim() !== "") {
-        return innerLang.split('-')[0].toLowerCase();
-      }
+      // 9) cookie or localStorage (if your site stores preferred language)
+      try {
+        const cookieMatch = document.cookie.match(/(?:^|;\s*)lang=([^;]+)/);
+        if (cookieMatch && cookieMatch[1]) return norm(decodeURIComponent(cookieMatch[1]));
+        const ls = localStorage.getItem('lang') || localStorage.getItem('preferredLang') || localStorage.getItem('siteLang');
+        if (ls && ls.trim()) return norm(ls);
+      } catch (e) { /* storage/cookie access may throw in some sandboxes */ }
+
+      // 10) Browser preference
+      const navLang = (navigator.languages && navigator.languages[0]) || navigator.language || navigator.userLanguage;
+      if (navLang && navLang.trim()) return norm(navLang);
 
       // final fallback
       return "en";
@@ -602,4 +644,4 @@ function initializeSafetyModule(moduleId) {
     document.addEventListener("DOMContentLoaded", init);
   }
 }
-//Version 3.0
+//Version 3.1
