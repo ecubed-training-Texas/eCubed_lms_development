@@ -628,6 +628,18 @@ function initializeSafetyModule(moduleId) {
       window.removeEventListener("beforeunload", cleanup);
     });
 
+    // Diagnostic: script source + readyState
+    console.log("init() scriptSrc:", (document.currentScript && document.currentScript.src) || "unknown", "readyState:", document.readyState, "pageURL:", window.location.href);
+
+    // Ensure we register onvoiceschanged before first populateVoices call
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.onvoiceschanged = () => {
+        console.log("onvoiceschanged fired");
+        if (!voicesLoaded) populateVoices();
+      };
+    }
+
+    // previously you called populateVoices() here — keep it, but now onvoiceschanged is already set
     populateVoices();
     window.speechSynthesis.onvoiceschanged = () => {
       if (!voicesLoaded) {
@@ -644,4 +656,4 @@ function initializeSafetyModule(moduleId) {
     document.addEventListener("DOMContentLoaded", init);
   }
 }
-//Version 3.1
+//Version 3.2
